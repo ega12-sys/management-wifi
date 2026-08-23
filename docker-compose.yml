@@ -23,6 +23,16 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     #restart: unless-stopped -> akan digunakan nanti jika ingin otomatis compose up -d
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: management-wifi-phpmyadmin
+    ports:
+        - "8080:80"
+    environment:
+        PMA_HOST: mysql
+        PMA_PORT: 3306
+    depends_on:
+        - mysql
 
 volumes:
   mysql_data:
