@@ -8,8 +8,6 @@ use App\Http\Requests\Package\UpdatePackageRequest;
 use App\Http\Resources\Package\PackageResource;
 use App\Models\Package;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PackageController extends Controller
 {

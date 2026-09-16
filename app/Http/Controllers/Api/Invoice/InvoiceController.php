@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Invoice;
+namespace App\Http\Controllers\Api\Invoice;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreCustomerRequest;
