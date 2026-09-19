@@ -6,21 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Package\StorePackageRequest;
 use App\Http\Requests\Package\UpdatePackageRequest;
 use App\Http\Resources\Package\PackageResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Package;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PackageController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $vaData = Package::with('packageType')->paginate(10);
+    $packages = Package::with('packageType')->paginate(10);
 
-    return PackageResource::collection($vaData);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data paket berhasil diambil',
+      'data' => PackageResource::collection($packages),
+      'meta' => [
+        'current_page' => $packages->currentPage(),
+        'last_page' => $packages->lastPage(),
+        'per_page' => $packages->perPage(),
+        'total' => $packages->total(),
+      ],
+    ]);
   }
 
   /**
@@ -30,9 +40,11 @@ class PackageController extends Controller
   {
     $package = Package::create($request->validated());
 
-    return (new PackageResource($package))
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new PackageResource($package),
+      "Paket Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -40,7 +52,10 @@ class PackageController extends Controller
    */
   public function show(Package $package)
   {
-    return new PackageResource($package->load('packageType'));
+    return $this->successResponse(
+      new PackageResource($package->load('packageType')),
+      "Paket Berhasil di Temukan"
+    );
   }
 
   /**
@@ -51,7 +66,10 @@ class PackageController extends Controller
     $package->update($request->validated());
     $package->load('packageType'); //relasi ke tabel tipe paket
 
-    return new PackageResource($package);
+    return $this->successResponse(
+      new PackageResource($package),
+      "Paket Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -61,8 +79,9 @@ class PackageController extends Controller
   {
     $package->delete();
 
-    return response()->json([
-      'message' => 'Package deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Paket Berhasil di Hapus"
+    );
   }
 }

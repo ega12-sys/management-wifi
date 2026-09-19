@@ -6,18 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Http\Resources\Customer\CustomerResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Customer;
 
 class CustomerController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $vaData = Customer::query()->paginate(10);
+    $customers = Customer::query()->paginate(10);
 
-    return CustomerResource::collection($vaData);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data customer berhasil diambil',
+      'data' => CustomerResource::collection($customers),
+      'meta' => [
+        'current_page' => $customers->currentPage(),
+        'last_page' => $customers->lastPage(),
+        'per_page' => $customers->perPage(),
+        'total' => $customers->total(),
+      ],
+    ]);
   }
 
   /**
@@ -27,9 +39,11 @@ class CustomerController extends Controller
   {
     $customer = Customer::create($request->validated());
 
-    return (new CustomerResource($customer))
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new CustomerResource($customer),
+      "Customer Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -37,7 +51,10 @@ class CustomerController extends Controller
    */
   public function show(Customer $customer)
   {
-    return (new CustomerResource($customer));
+    return $this->successResponse(
+      new CustomerResource($customer),
+      "Customer Berhasil di Temukan"
+    );
   }
 
   /**
@@ -47,7 +64,10 @@ class CustomerController extends Controller
   {
     $customer->update($request->validated());
 
-    return new CustomerResource($customer);
+    return $this->successResponse(
+      new CustomerResource($customer),
+      "Customer Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -57,8 +77,9 @@ class CustomerController extends Controller
   {
     $customer->delete();
 
-    return response()->json([
-      'message' => 'Customer deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Customer Berhasil di Hapus"
+    );
   }
 }

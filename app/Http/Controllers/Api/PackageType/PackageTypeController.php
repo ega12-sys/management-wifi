@@ -6,19 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PackageType\StorePackageTypeRequest;
 use App\Http\Requests\PackageType\UpdatePackageTypeRequest;
 use App\Http\Resources\PackageType\PackageTypeResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\PackageType;
 use Illuminate\Http\JsonResponse;
 
 class PackageTypeController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $packageTypes = PackageType::query()->latest()->paginate(10);
+    $packageTypes = PackageType::query()->paginate(10);
 
-    return PackageTypeResource::collection($packageTypes);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data tipe paket berhasil diambil',
+      'data' => PackageTypeResource::collection($packageTypes),
+      'meta' => [
+        'current_page' => $packageTypes->currentPage(),
+        'last_page' => $packageTypes->lastPage(),
+        'per_page' => $packageTypes->perPage(),
+        'total' => $packageTypes->total(),
+      ],
+    ]);
   }
 
   /**
@@ -28,9 +40,11 @@ class PackageTypeController extends Controller
   {
     $packageType = PackageType::create($request->validated());
 
-    return (new PackageTypeResource($packageType))
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new PackageTypeResource($packageType),
+      "Tipe Paket Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -38,7 +52,10 @@ class PackageTypeController extends Controller
    */
   public function show(PackageType $packageType)
   {
-    return new PackageTypeResource($packageType);
+    return $this->successResponse(
+      new PackageTypeResource($packageType),
+      "Tipe Paket Berhasil di Temukan"
+    );
   }
 
   /**
@@ -48,7 +65,10 @@ class PackageTypeController extends Controller
   {
     $packageType->update($request->validated());
 
-    return new PackageTypeResource($packageType->fresh());
+    return $this->successResponse(
+      new PackageTypeResource($packageType->fresh()),
+      "Tipe Paket Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -58,8 +78,9 @@ class PackageTypeController extends Controller
   {
     $packageType->delete();
 
-    return response()->json([
-      'message' => 'Package type deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Tipe Paket Berhasil di Hapus"
+    );
   }
 }
