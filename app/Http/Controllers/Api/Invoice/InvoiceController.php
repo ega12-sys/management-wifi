@@ -6,18 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Invoice\UpdateInvoiceRequest;
 use App\Http\Resources\Invoice\InvoiceResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Invoice;
 
 class InvoiceController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $vaData = Invoice::with(['customer', 'subscription'])->paginate(10);
+    $invoices = Invoice::with(['customer', 'subscription'])->paginate(10);
 
-    return InvoiceResource::collection($vaData);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data invoice berhasil diambil',
+      'data' => InvoiceResource::collection($invoices),
+      'meta' => [
+        'current_page' => $invoices->currentPage(),
+        'last_page' => $invoices->lastPage(),
+        'per_page' => $invoices->perPage(),
+        'total' => $invoices->total(),
+      ],
+    ]);
   }
 
   /**
@@ -27,9 +39,11 @@ class InvoiceController extends Controller
   {
     $invoice = Invoice::create($request->validated());
 
-    return new InvoiceResource($invoice)
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new InvoiceResource($invoice),
+      "Invoice Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -37,7 +51,10 @@ class InvoiceController extends Controller
    */
   public function show(Invoice $invoice)
   {
-    return new InvoiceResource($invoice->load(['customer', 'subscription']));
+    return $this->successResponse(
+      new InvoiceResource($invoice->load(['customer', 'subscription'])),
+      "Invoice Berhasil di Temukan",
+    );
   }
 
   /**
@@ -47,7 +64,10 @@ class InvoiceController extends Controller
   {
     $invoice->update($request->validated());
 
-    return new InvoiceResource($invoice->load(['customer', 'subscription  ']));
+    return $this->successResponse(
+      new InvoiceResource($invoice->load(['customer', 'subscription  '])),
+      "Invoice Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -57,8 +77,9 @@ class InvoiceController extends Controller
   {
     $invoice->delete();
 
-    return response()->json([
-      'message' => 'Invoice deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Invoice Berhasil di Hapus"
+    );
   }
 }

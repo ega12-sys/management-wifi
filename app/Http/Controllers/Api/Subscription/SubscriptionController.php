@@ -6,18 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Subscription\StoreSubscriptionRequest;
 use App\Http\Requests\Subscription\UpdateSubscriptionRequest;
 use App\Http\Resources\Subscription\SubscriptionResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Subscription;
 
 class SubscriptionController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $vaData = Subscription::with('customer', 'package')->paginate(10);
+    $subscriptions = Subscription::with('customer', 'package')->paginate(10);
 
-    return SubscriptionResource::collection($vaData);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data pelanggan berhasil diambil',
+      'data' => SubscriptionResource::collection($subscriptions),
+      'meta' => [
+        'current_page' => $subscriptions->currentPage(),
+        'last_page' => $subscriptions->lastPage(),
+        'per_page' => $subscriptions->perPage(),
+        'total' => $subscriptions->total(),
+      ],
+    ]);
   }
 
   /**
@@ -27,9 +39,11 @@ class SubscriptionController extends Controller
   {
     $subscription = Subscription::create($request->validated());
 
-    return (new SubscriptionResource($subscription))
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new SubscriptionResource($subscription),
+      "Pelanggan Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -37,7 +51,10 @@ class SubscriptionController extends Controller
    */
   public function show(Subscription $subscription)
   {
-    return new SubscriptionResource($subscription->load('customer', 'package'));
+    return $this->successResponse(
+      new SubscriptionResource($subscription->load('customer', 'package')),
+      "Pelanggan Berhasil di Temukan"
+    );
   }
 
   /**
@@ -47,7 +64,10 @@ class SubscriptionController extends Controller
   {
     $subscription->update($request->validated());
 
-    return new SubscriptionResource($subscription);
+    return $this->successResponse(
+      new SubscriptionResource($subscription),
+      "Pelanggan Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -57,8 +77,9 @@ class SubscriptionController extends Controller
   {
     $subscription->delete();
 
-    return response()->json([
-      'message' => 'Subscription deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Pelanggan Berhasil di Hapus"
+    );
   }
 }

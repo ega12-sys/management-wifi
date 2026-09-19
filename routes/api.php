@@ -19,11 +19,46 @@ Route::middleware('auth:sanctum')->group(function () {
       'user' => $request->user(),
     ]);
   });
+  Route::apiResource('package-types', PackageTypeController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Tipe Paket tidak ditemukan',
+      ], 404);
+    });
+  Route::apiResource('packages', PackageController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Paket tidak ditemukan',
+      ], 404);
+    });
+  Route::apiResource('customers', CustomerController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Customer tidak ditemukan',
+      ], 404);
+    });
+  Route::apiResource('subscriptions', SubscriptionController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Pelanggan tidak ditemukan',
+      ], 404);
+    });
+  Route::apiResource('invoices', InvoiceController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Invoice tidak ditemukan',
+      ], 404);
+    });
+  Route::apiResource('payments', PaymentController::class)
+    ->missing(function (Request $request) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment tidak ditemukan',
+      ], 404);
+    });
 });
-
-Route::apiResource('package-types', PackageTypeController::class);
-Route::apiResource('packages', PackageController::class);
-Route::apiResource('customers', CustomerController::class);
-Route::apiResource('subscriptions', SubscriptionController::class);
-Route::apiResource('invoices', InvoiceController::class);
-Route::apiResource('payments', PaymentController::class);

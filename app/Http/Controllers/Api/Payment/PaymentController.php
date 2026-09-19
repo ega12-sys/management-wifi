@@ -6,18 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Http\Requests\Payment\UpdatePaymentRequest;
 use App\Http\Resources\Payment\PaymentResource;
+use App\Http\Traits\ApiResponse;
 use App\Models\Payment;
 
 class PaymentController extends Controller
 {
+  use ApiResponse;
   /**
    * Display a listing of the resource.
    */
   public function index()
   {
-    $vaData = Payment::with('invoice')->paginate(10);
+    $payments = Payment::with('invoice')->paginate(10);
 
-    return PaymentResource::collection($vaData);
+    return response()->json([
+      'success' => true,
+      'message' => 'Data payment berhasil diambil',
+      'data' => PaymentResource::collection($payments),
+      'meta' => [
+        'current_page' => $payments->currentPage(),
+        'last_page' => $payments->lastPage(),
+        'per_page' => $payments->perPage(),
+        'total' => $payments->total(),
+      ],
+    ]);
   }
 
   /**
@@ -27,9 +39,11 @@ class PaymentController extends Controller
   {
     $payment = Payment::create($request->validated());
 
-    return new PaymentResource($payment)
-      ->response()
-      ->setStatusCode(201);
+    return $this->successResponse(
+      new PaymentResource($payment),
+      "Payment Berhasil di Tambahkan",
+      201
+    );
   }
 
   /**
@@ -37,7 +51,10 @@ class PaymentController extends Controller
    */
   public function show(Payment $payment)
   {
-    return new PaymentResource($payment->load('invoice'));
+    return $this->successResponse(
+      new PaymentResource($payment->load('invoice')),
+      "Paymen Berhasil di Temukan"
+    );
   }
 
   /**
@@ -47,7 +64,10 @@ class PaymentController extends Controller
   {
     $payment->update($request->validated());
 
-    return new PaymentResource($payment->load('invoice'));
+    return $this->successResponse(
+      new PaymentResource($payment->load('invoice')),
+      "Payment Berhasil di Perbarui"
+    );
   }
 
   /**
@@ -57,8 +77,9 @@ class PaymentController extends Controller
   {
     $payment->delete();
 
-    return response()->json([
-      'message' => 'Payment deleted successfully.',
-    ]);
+    return $this->successResponse(
+      null,
+      "Payment Berhasil di Hapus"
+    );
   }
 }
